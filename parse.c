@@ -131,34 +131,36 @@ static node_t *build_exp(void) {
         }
 
         advance_lexer();
-        internalNode->children[0] = build_exp();
-        advance_lexer();
-        if(is_binop(this_token->ttype)) {
-            internalNode->tok = this_token->ttype;
-            advance_lexer();
-            internalNode->children[1] = build_exp();
-            advance_lexer();
-        }
-        else if(is_unop(this_token->ttype)) {
+        if(is_unop(this_token->ttype)) {
             internalNode->tok = this_token->ttype;
             advance_lexer();
             internalNode->children[0] = build_exp();
             advance_lexer();
         }
-        else if(this_token->ttype == TOK_QUESTION) {
+        else {
+            internalNode->children[0] = build_exp();
             advance_lexer();
-            internalNode->children[1] = build_exp();
-            advance_lexer();
-            if(this_token->ttype != TOK_COLON) {
+            if(is_binop(this_token->ttype)) {
+                internalNode->tok = this_token->ttype;
+                advance_lexer();
+                internalNode->children[1] = build_exp();
+                advance_lexer();
+            }
+            else if(this_token->ttype == TOK_QUESTION) {
+                advance_lexer();
+                internalNode->children[1] = build_exp();
+                advance_lexer();
+                if(this_token->ttype != TOK_COLON) {
+                    handle_error(ERR_SYNTAX);
+                }
+                internalNode->tok = this_token->ttype;
+                advance_lexer();
+                internalNode->children[2] = build_exp();
+                advance_lexer();
+            }
+            else {
                 handle_error(ERR_SYNTAX);
             }
-            internalNode->tok = this_token->ttype;
-            advance_lexer();
-            internalNode->children[2] = build_exp();
-            advance_lexer();
-        }
-        else {
-            handle_error(ERR_SYNTAX);
         }
 
         if(this_token->ttype != TOK_RPAREN) {
